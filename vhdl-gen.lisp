@@ -50,3 +50,17 @@
 					(assign f (or a1 b)))))
 		  (comment "we are outside the process body")
 		  (concurrent-assign q (not a)))))
+
+;; Listing 5.5: Syntax of the if statement.
+;; if (condition1) then
+;;   <statements1>
+;; elsif (condition2) then
+;;   <statements2>
+;; else
+;;   <statements3>
+;; end if;
+
+(with-vhdl ()
+ (cond ((condition1 statements1)
+	(condition2 statements2)
+	(t statements3))))
