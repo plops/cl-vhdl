@@ -144,12 +144,66 @@ abs
 
 and or nand nor xor xnor not
 
-* / mod rem
+* / mod rem 
 
 + -
 
 concatenate=&
-shift: sll srl sla sra
-rotate: rol ror
+logic shift: sll srl        -> lsh +,-  introduces zeros ieee.numeric_std, .._bit
+arithmethic shift: sla sra  -> ash +,- sign bit unchanged
+rotate: rol ror             -> rot 
 
 relational = /= < <= > >=
+
+(mod rem and & only on some types)
+
+;;;; d flip flop
+
+;; library IEEE;
+;; use IEEE.std_logic_1164.all;
+;; -- entity
+;; entity d_ff is
+;;   port ( D, CLK : in std_logic;
+;;          Q :
+;;          out std_logic);
+;; end d_ff;
+;; -- architecture
+;; architecture my_d_ff of d_ff is
+;; begin
+;;   dff: process(CLK)
+;;   begin
+;;     if (rising_edge(CLK))
+;;     then
+;; --or if (CLK'event and CLK='1') then
+;;       Q <= D;
+;;     end if;
+;;   end process dff;
+;; end my_d_ff;
+
+(entity d-ff (((d clk) :in std_logic)
+	      (q :out std_logic)))
+(architecture my-d-ff d-ff
+	      (process (clk)
+		       (when (and (event clk)
+				  (= #b1 clk))
+			 (set q d))))
+
+;; vhdl doesn't change the output. because there is no else in the if,
+;; the implementation has to remember the previous value.
+
+;; in order to check if you use memory check for the presence of an
+;; else clause in an if statement. then the synthesizer will generate
+;; a latch
+
+;; synchronous input S that sets the d flip flop when asserted
+(process (clk)
+	 (when (and (event clk)
+		    (= #b1 clk))
+	   (if (= s 0)
+	       (set q 1)
+	       (set q d))))
+
+;; asynchronous input R that resets the flip flop
+(process (clk)
+	 (cond ((= r 1) (set q 0))
+	       ((and (event clk) (= 1 clk)) (set q d))))
