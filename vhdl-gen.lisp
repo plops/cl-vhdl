@@ -243,11 +243,12 @@ relational = /= < <= > >=
        (let ((ps state-type)
 	     (ns state-type))
 	 (process sync-proc (clk ns clr)
+		  ;; storage only of ps
 		  (cond ((= clr 1) (set ps st0))
 			((and (event clk) (= 1 clk))
 			 (set ps ns))))
 	 (process comb-proc (ps tog-en)
-		  (set z1 0)
+		  (set z1 0) ;; preassignment prevents latches
 		  (case ps
 		    (st0 (set z1 0)
 			 (if (= tog-en 1)
@@ -259,3 +260,31 @@ relational = /= < <= > >=
 			     (set ns st1)))
 		    (t (set z1 0)
 		       (set ns st0)))))))
+
+;; force the encoding of the states
+
+(architecture
+ fsm1 fsm1-entity
+ (type ((state-type (st0 st1)))
+       (attribute ((enum-encoding string)
+		   (enum-encoding state-type "1000 0100 0010 0001"))
+	(let ((ps state-type)
+	      (ns state-type))
+	  (process sync-proc (clk ns clr)
+		   ;; storage only of ps (previous state)
+		   (cond ((= clr 1) (set ps st0))
+			 ((and (event clk) (= 1 clk))
+			  (set ps ns))))
+	  (process comb-proc (ps tog-en)
+		   (set z1 0) ;; preassignment prevents latches
+		   (case ps
+		     (st0 (set z1 0)
+			  (if (= tog-en 1)
+			      (set ns st1)
+			      (set ns st0)))
+		     (st1 (set z1 1)
+			  (if (= tog-en 1)
+			      (set ns st0)
+			      (set ns st1)))
+		     (t (set z1 0)
+			(set ns st0))))))))
