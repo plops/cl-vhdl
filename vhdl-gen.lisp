@@ -1,3 +1,51 @@
+
+
+;; entity ckt_e is
+;;   port(
+;;     RAM_CS, RAM_WE, RAM_OE  : in std_logic;
+;;     SEL_OP1, SEL_OP2 : in std_logic_vector(3 downto 0);
+;;     RAM_DATA_IN : in std_logic_vector(9 downto 0);
+;;     RAM_DATA_OUT : in std_logic_vector(7 downto 0));
+;; end ckt_e;              
+
+(with-vhdl ()
+  (entity ckt_e
+	  ((ram-cs ram-we ram-oe) :in std_logic)
+	  ((sel-op1 sel-op2) :in (std_logic_vector 3 :downto 0))
+	  (ram-data-in :in (std_logic_vector 9 :downto 0))
+	  (ram-data-out :in (std_logic_vector 7 :downto 0))))
+
+;; conditional assignment
+;; <target> <= <expression1> when <condition1> else
+;;             <expression2> when <condition2> else
+;;             <expression3>;
+
+(assign target
+	(cond ((condition1 expression1))
+	      ((condition2 expression2))
+	      (t expression3)))
+
+;; selected assignment
+;; with <choose_expression> select
+;;      target <= <expression> when <choices>,
+;;                <expression> when <choices>;
+;; architecture f3_4 of my_ckt_f3 is
+;; begin
+;;   with ((L ='0' and M ='0'and N ='1')or(L='1' and M='1')) select
+;;     F3 <= '1' when '1',
+;;     '0' when '0',
+;;     '0' when others;
+;; end f3_4;
+
+;; ideally i only want set instead of select-assign, conditional-assign, concurrent-assign and so on
+(set f3 (case (or (and (= l #b0) (m #b0) (n #b1))
+		   (and (= l #b1) (m #b1)))
+	  (#b1 #b1)
+	  (#b0 #b0)
+	  (t #b0)))
+
+;;;; process statement
+
 ;; -- library declaration
 ;; library IEEE;
 ;; use IEEE.std_logic_1164.all;
@@ -67,29 +115,3 @@
  (cond ((condition1 statements1)
 	(condition2 statements2)
 	(t statements3))))
-
-
-;; entity ckt_e is
-;;   port(
-;;     RAM_CS, RAM_WE, RAM_OE  : in std_logic;
-;;     SEL_OP1, SEL_OP2 : in std_logic_vector(3 downto 0);
-;;     RAM_DATA_IN : in std_logic_vector(9 downto 0);
-;;     RAM_DATA_OUT : in std_logic_vector(7 downto 0));
-;; end ckt_e;              
-
-(with-vhdl ()
-  (entity ckt_e
-	  ((ram-cs ram-we ram-oe) :in std_logic)
-	  ((sel-op1 sel-op2) :in (std_logic_vector 3 :downto 0))
-	  (ram-data-in :in (std_logic_vector 9 :downto 0))
-	  (ram-data-out :in (std_logic_vector 7 :downto 0))))
-
-;; conditional assignment
-;; <target> <= <expression1> when <condition1> else
-;;             <expression2> when <condition2> else
-;;             <expression3>;
-
-(assign target
-	(cond ((condition1 expression1))
-	      ((condition2 expression2))
-	      (t expression3)))
