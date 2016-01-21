@@ -46,6 +46,10 @@
 
 ;;;; process statement
 
+;; the label is optional, should be included for self description
+;; don't use complex processes, keep them simple
+;; then the synthesizer will be more efficient
+
 ;; -- library declaration
 ;; library IEEE;
 ;; use IEEE.std_logic_1164.all;
@@ -99,6 +103,7 @@
 		  (comment "we are outside the process body")
 		  (concurrent-assign q (not a)))))
 
+;; this only in process body:
 ;; Listing 5.5: Syntax of the if statement.
 ;; if (condition1) then
 ;;   <statements1>
@@ -115,3 +120,36 @@
  (cond ((condition1 statements1)
 	(condition2 statements2)
 	(t statements3))))
+
+;; case statement
+;; sequential equivalent of the selected assignment
+;; when others should be used as good practice
+;; case (expression) is
+;;   when choices =>
+;;     <sequential statements>
+;;   when choices =>
+;;     <sequential statements>
+;;   when others =>
+;;     <sequential statements>
+;; end case;
+
+(case expression
+  (choice1 statement))
+
+
+;; operators
+
+exponential=**
+abs
+
+and or nand nor xor xnor not
+
+* / mod rem
+
++ -
+
+concatenate=&
+shift: sll srl sla sra
+rotate: rol ror
+
+relational = /= < <= > >=
