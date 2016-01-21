@@ -83,3 +83,13 @@
 	  ((sel-op1 sel-op2) :in (std_logic_vector 3 :downto 0))
 	  (ram-data-in :in (std_logic_vector 9 :downto 0))
 	  (ram-data-out :in (std_logic_vector 7 :downto 0))))
+
+;; conditional assignment
+;; <target> <= <expression1> when <condition1> else
+;;             <expression2> when <condition2> else
+;;             <expression3>;
+
+(assign target
+	(cond ((condition1 expression1))
+	      ((condition2 expression2))
+	      (t expression3)))
