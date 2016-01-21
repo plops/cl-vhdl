@@ -207,3 +207,19 @@ relational = /= < <= > >=
 (process (clk)
 	 (cond ((= r 1) (set q 0))
 	       ((and (event clk) (= 1 clk)) (set q d))))
+
+;; t flip flop output depends on its current output.  use an
+;; intermediate signal to get to the output signal.  the intermediate
+;; signal may stand on both sides of the assignment operator
+
+;; t flip flops have certain advantages over d flip flops
+
+(entity t-ff-s (((tin s clk) :in std_logic)
+		(q :out std_logic)))
+(architecture
+ my-tff-s tff-s
+ (process (s clk)
+	  (let ((tmp std_logic))
+	    (cond ((= s 0) (set tmp 1))
+		  ((and (event clk) (= 1 clk)) (set tmp (xor tin tmp))))))
+ (set q tmp))
