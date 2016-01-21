@@ -43,8 +43,8 @@
 		  (process some-proc (a b c)
 			   (let-var ((va integer)
 				     (vb integer))
-				    (set va 74
-					 vb 67)
+				    (variable-assign va 74)
+				    (variable-assign vb 67)
 				    (sequential-assign a1 (and a b c))
 				    (if (< vb va)
 					(assign f (or a1 b)))))
@@ -60,7 +60,26 @@
 ;;   <statements3>
 ;; end if;
 
+;; sequential equivalent of conditional signal assigment
+;; final else clause is optional, has deep ramifications
+
 (with-vhdl ()
  (cond ((condition1 statements1)
 	(condition2 statements2)
 	(t statements3))))
+
+
+;; entity ckt_e is
+;;   port(
+;;     RAM_CS, RAM_WE, RAM_OE  : in std_logic;
+;;     SEL_OP1, SEL_OP2 : in std_logic_vector(3 downto 0);
+;;     RAM_DATA_IN : in std_logic_vector(9 downto 0);
+;;     RAM_DATA_OUT : in std_logic_vector(7 downto 0));
+;; end ckt_e;              
+
+(with-vhdl ()
+  (entity ckt_e
+	  ((ram-cs ram-we ram-oe) :in std_logic)
+	  ((sel-op1 sel-op2) :in (std_logic_vector 3 :downto 0))
+	  (ram-data-in :in (std_logic_vector 9 :downto 0))
+	  (ram-data-out :in (std_logic_vector 7 :downto 0))))
