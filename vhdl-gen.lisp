@@ -212,7 +212,9 @@ relational = /= < <= > >=
 ;; intermediate signal to get to the output signal.  the intermediate
 ;; signal may stand on both sides of the assignment operator
 
-;; t flip flops have certain advantages over d flip flops
+;; t flip flops (toggle) have certain advantages over d flip flops
+
+;; when t is high, clock frequency divided by 2
 
 (entity t-ff-s (((tin s clk) :in std_logic)
 		(q :out std_logic)))
@@ -223,3 +225,37 @@ relational = /= < <= > >=
 	    (cond ((= s 0) (set tmp 1))
 		  ((and (event clk) (= 1 clk)) (set tmp (xor tin tmp))))))
  (set q tmp))
+
+
+;; finite state machines
+
+;; split fsm into two processes. a synchronous one for clocking and
+;; storage and a combinatorial one for next state and output decoder
+
+(entity fsm1-entity
+	(tog-en :in std_logic)
+	((clk clr) :in std_logic)
+	(z1 :out std_logic))
+
+(architecture
+ fsm1 fsm1-entity
+ (type ((state-type (st0 st1)))
+       (let ((ps state-type)
+	     (ns state-type))
+	 (process sync-proc (clk ns clr)
+		  (cond ((= clr 1) (set ps st0))
+			((and (event clk) (= 1 clk))
+			 (set ps ns))))
+	 (process comb-proc (ps tog-en)
+		  (set z1 0)
+		  (case ps
+		    (st0 (set z1 0)
+			 (if (= tog-en 1)
+			     (set ns st1)
+			     (set ns st0)))
+		    (st1 (set z1 1)
+			 (if (= tog-en 1)
+			     (set ns st0)
+			     (set ns st1)))
+		    (t (set z1 0)
+		       (set ns st0)))))))
