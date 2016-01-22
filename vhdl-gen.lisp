@@ -308,3 +308,74 @@ relational = /= < <= > >=
 
 (architecture ckt1 big-and3
 	      (set f (and a b c)))
+
+(entity my-compare ((a-in b-in) :in (std_logic_vector 2 :downto 0))
+	(eq-out :out std_logic))
+
+;; component declaration is placed after architecture line before begin
+;; it is just the copy of entity. i think lisp should fill this out itself
+
+;; architecture ckt1 of my_compare is
+;; -- XNOR gate --------------------
+;;   component big_xnor is
+;;     Port ( A,B : in std_logic;
+;;            F : out std_logic);
+;;   end component;
+;; -- 3-input AND gate -------------
+;;   component big_and3 is
+;;     Port ( A,B,C : in std_logic;
+;;            F : out std_logic);
+;;   end component;
+;; -- intermediate signal declaration
+;;   signal p1_out,p2_out,p3_out : std_logic;
+;; begin
+;;   x1: big_xnor port map (A => A_IN(2),
+;;                          B => B_IN(2),
+;;                          F => p1_out);
+;;   x2: big_xnor port map (A => A_IN(1),
+;;                          B => B_IN(1),
+;;                          F => p2_out);
+;;   x3: big_xnor port map (A => A_IN(0),
+;;                          B => B_IN(0),
+;;                          F => p3_out);
+;;   a1: big_and3 port map (A
+;;                          B
+;;                          C
+;;                          F
+;;                          end ckt1;
+;;                          =>
+;;                          =>
+;;                          =>
+;;                          =>
+;;                          p1_out,
+;;                          p2_out,
+;;                          p3_out,
+;;                          EQ_OUT);
+;; end ckt1;
+
+
+(architecture ckt1 my-compare (big-xnor big-and3)
+	      (let ((p1-out std_logic)
+		    (p2-out std_logic)
+		    (p3-out std_logic))
+		(instantiate big-xnor
+			     :label x1
+			     :a (a-in 2)
+			     :b (b-in 2)
+			     :f p1-out)
+		(instantiate big-xnor
+			     :label x2
+			     :a (a-in 1)
+			     :b (b-in 1)
+			     :f p2-out)
+		(instantiate big-xnor
+			     :label x3
+			     :a (a-in 0)
+			     :b (b-in 0)
+			     :f p3-out)
+		(instantiate big-and3
+			     :label a1
+			     :a p1-out
+			     :b p2-out
+			     :c p3-out
+			     :f eq-out)))
