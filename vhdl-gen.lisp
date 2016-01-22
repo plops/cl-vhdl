@@ -564,3 +564,32 @@ relational = /= < <= > >=
 
 
 ;; exit , also two forms
+
+;; standard digital circuits
+
+;; mux
+;; decoder
+;; counter
+;; comparator
+;; register
+
+(defcircuit d-flip-flop (clk d) (q)
+	    (process (clk)
+		     (when (and (event clk)
+				(= #b1 clk))
+		       (set q d))))
+
+(defcircuit fet-d-flip-flop (clk d s) (q)
+	    (process (clk)
+		     (if (= s 0)
+			 (set q 1)
+			 (when (and (event clk)
+				    (= 0 clk))
+			   (set q d)))))
+
+(defcircuit register-8-load-en (clk ld (d-in 8)) ((d-out 8))
+	    (process (clk)
+		     (when (and (event clk)
+				(= #b1 clk))
+		       (if (= ld 1)
+			   (set d-out d-in)))))
