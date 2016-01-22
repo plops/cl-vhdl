@@ -449,3 +449,33 @@ relational = /= < <= > >=
 
 ;; i'm not sure if i should even implement generics. seems quite
 ;; complicated and is unnecessary when you have macros
+
+;; you can include declarations using
+;; library UNISIM;
+;; use UNISIM.VComponents.all
+
+;; register is a vector of d-flip flops on which all operations occur
+;; simultaneously
+
+;; i don't want to write std_logic all the time. perhaps this function
+;; would be useful. it should expand to:
+;; entity reg8 is
+;;   Port ( REG_IN : in std_logic_vector(7 downto 0);
+;;          LD,CLK : in std_logic;
+;;          REG_OUT : out std_logic_vector(7 downto 0));
+;; end reg8;
+
+(entity* reg8
+	 :in (reg-in 8) ld clk
+	 :out (reg-out 8))
+
+;; the following should expand to
+;; architecture reg8-arch323 of reg8 is ...
+
+(architecture* reg8
+	       (process (clk)
+			(when (and (event clk)
+				   (= #b1 clk))
+			  (set reg-out reg-in))))
+
+
