@@ -499,7 +499,7 @@ relational = /= < <= > >=
 ;; a few standard types:
 ;; std_logic std_logic_vector boolean
 ;; boolean vector
-;; integer
+;; integer (32 bit signed, -2,147,483,647 to 2,147,483,647)
 ;; natural (non-negative integer)
 ;; positive
 ;; integer_vector
@@ -516,3 +516,51 @@ relational = /= < <= > >=
 ;; 			     2 => ...  
 ;; 			     18 => ...
 ;; 			     others => ....);
+
+;; vhdl synthesizer will do range checks
+
+;; signed, unsigned from ieee.numeric_std
+;; you should not use std_logic_arith (but this would allow to add std_logic_vector)
+;; std_logic_vector is just a bag of bits and can not be used for numerical calculation
+
+;; std_logic is resolved, multiple assignment to same signal is
+;; possible without complaint from compiler
+
+;; for loop
+
+;; loop_label: for index in a_range loop
+;;   sequential statements ..
+;; end loop loop_label;
+
+;; a_range examples:
+;; 0 to 24
+;; 24 downto 0
+
+;; type of index variable is implicit
+;; index variable can't be assigned to
+;; only step 1
+
+
+;; while loop
+;; loop_label: while (condition) loop
+;;   sequential stat ements ..
+;; end loop loop_label;
+
+;; more loop control statements:
+;; next has two forms:
+
+;; for i in 0 to 50 loop
+;;   if (i = 20) then
+;;     next;
+;;   end if;
+;;   i := i + 1;
+;; end loop;
+
+;; for i in 0 to 50 loop
+;;   next when (i = 20);
+;;   i := i + 1;
+;; end loop;
+
+
+
+;; exit , also two forms
