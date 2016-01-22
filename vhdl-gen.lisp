@@ -354,28 +354,30 @@ relational = /= < <= > >=
 ;; end ckt1;
 
 
-(architecture ckt1 my-compare (big-xnor big-and3)
-	      (let ((p1-out std_logic)
-		    (p2-out std_logic)
-		    (p3-out std_logic))
-		(instantiate big-xnor
-			     :label x1
-			     :a (a-in 2)
-			     :b (b-in 2)
-			     :f p1-out)
-		(instantiate big-xnor
-			     :label x2
-			     :a (a-in 1)
-			     :b (b-in 1)
-			     :f p2-out)
-		(instantiate big-xnor
-			     :label x3
-			     :a (a-in 0)
-			     :b (b-in 0)
-			     :f p3-out)
-		(instantiate big-and3
-			     :label a1
-			     :a p1-out
-			     :b p2-out
-			     :c p3-out
-			     :f eq-out)))
+(architecture
+ ckt1 my-compare  
+ (with-components (big-xnor big-and3)
+   (let ((p1-out std_logic)
+	 (p2-out std_logic)
+	 (p3-out std_logic))
+     (instantiate big-xnor
+		  :label x1
+		  :a (a-in 2)
+		  :b (b-in 2)
+		  :f p1-out)
+     (instantiate big-xnor
+		  :label x2
+		  :a (a-in 1)
+		  :b (b-in 1)
+		  :f p2-out)
+     (instantiate big-xnor
+		  :label x3
+		  :a (a-in 0)
+		  :b (b-in 0)
+		  :f p3-out)
+     (instantiate big-and3
+		  :label a1
+		  :a p1-out
+		  :b p2-out
+		  :c p3-out
+		  :f eq-out))))
