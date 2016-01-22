@@ -288,3 +288,23 @@ relational = /= < <= > >=
 			      (set ns st1)))
 		     (t (set z1 0)
 			(set ns st0))))))))
+;; components
+;; Step 1. Generate the top-level entity declaration.
+;; Step 2. Declare the lower-level design units used in design.
+;; Step 3. Declare required internal signals used to connect the design units.
+;; Step 4. Instantiate the design units.
+
+(entity big-xnor
+	((a b) :in std_logic)
+	(f :out std_logic))
+
+(architecture ckt1 big-xnor
+	      (set f (not (or (and a (not b))
+			      (andb (not a) b)))))
+
+(entity big-and3
+	((a b c) :in std_logic)
+	(f :out std_logic))
+
+(architecture ckt1 big-and3
+	      (set f (and a b c)))
