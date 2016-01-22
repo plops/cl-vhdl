@@ -478,4 +478,41 @@ relational = /= < <= > >=
 				   (= #b1 clk))
 			  (set reg-out reg-in))))
 
+;; 4 dataobjects: signal variable constant file
 
+;; signal sig_name : sig_type [:= initial_value];
+
+;; signals usually don't have initial value, they can't be implemented
+;; in silicon but are useful for simulations
+
+;; signal a : std_logic := '0';
+;; signal i : integer;
+;; signal b : integer range -128 to 127 := 0;
+;; signal bus : std_logic_vector(3 downto 0) := "0011";
+
+;; variable index_a : integer range (0 to 255) := 0;
+;; constant max_cnt : integer := 12;
+
+;; variables only in process and only for loops or as temporaries in
+;; some calculation
+
+;; a few standard types:
+;; std_logic std_logic_vector boolean
+;; boolean vector
+;; integer
+;; natural (non-negative integer)
+;; positive
+;; integer_vector
+;; character (256 symbols)
+;; string (vector of character)
+
+;; user-defined types:
+;; type my_type is range 0 to 100;
+
+;; custom datatype for 20 byte rom:
+
+;; type memory is array (0 to 19 of std_logic_vector (7 downto 0));
+;; constant my_rom : memory := (1 => "11111111"
+;; 			     2 => ...  
+;; 			     18 => ...
+;; 			     others => ....);
