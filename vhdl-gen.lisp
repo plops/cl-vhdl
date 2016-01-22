@@ -628,3 +628,32 @@ relational = /= < <= > >=
 		     (if (= a-in b-in)
 			 (set aeb 1)
 			 (set aeb 0))))
+;; bcd to 7 segment decoder (boring)
+
+;; data flow model for multiplexer seems harder to emit from lisp:
+
+;; with SEL select
+;;  MUX_OUT <= A when "00",
+;;             B when "01",
+;;             C when "10",
+;;             D when "11",
+;;             (others => '0') when others;
+
+;; so instead only the behavioral
+
+;; case SEL is
+;;  when "00" => MUX_OUT <= A;
+;;  when "01" => MUX_OUT <= B;
+;;  when "10" => MUX_OUT <= C;
+;;  when "11" => MUX_OUT <= D;
+;;  when others => (others => '0');
+;; end case;
+
+(defcircuit multiplexer-4-1-behav ((sel 2) a b c d) (out)
+	    (process (sel a b c d)
+		     (case sel
+		       (#b00 (set out a))
+		       (#b01 (set out a))
+		       (#b10 (set out a))
+		       (#b11 (set out a))
+		       (others (set out 0)))))
