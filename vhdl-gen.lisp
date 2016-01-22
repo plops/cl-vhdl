@@ -607,3 +607,12 @@ relational = /= < <= > >=
 				    (set t-cnt (+ t-cnt 1))
 				    (set t-cnt (- t-cnt 1)))))))
 	     (set count (funcall std_logic_vector t-cnt))))
+
+(defcircuit shift-register (clk d-in p-load (p-load-data 8))
+  (process (clk)
+	   (when (and (event clk)
+		      (= 1 clk))
+	     (if (= p-load 1)
+		 (set reg-tmp p-load-data)
+		 (set reg-tmp (& (reg-tmp 6 0) d-in))))
+	   (set d-out (reg-tmp 7))))
