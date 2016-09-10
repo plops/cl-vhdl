@@ -1,3 +1,6 @@
+VHDL bnf backus naur form prepared by P. Bakowski
+(taken from http://www.pldworld.net/_hdl/1/www.ireste.fr/fdl/vcl/lesd/Vbnf.htm )
+
 reserved words for VHDL'87
 
     abs access after alias all and architecture array assert attribute
