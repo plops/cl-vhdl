@@ -12,9 +12,18 @@
 (defmacro c (&body body)
   "combine multiple outputs into string"
   `(with-output-to-string (s)
-     (macrolet ((f (fmt &rest rest)
+     (macrolet ((fs (fmt &rest rest)
 		  `(format s ,fmt ,@rest)))
        ,@body)))
+
+(defun print-type (type)
+  (cond
+    ((listp type) (destructuring-bind (name start &optional (end 0)) type
+		      (f "~a( ~a ~a ~a )" name start (if (< start end)
+						'to
+						'downto)
+			 end)))
+    (t (f "~a" type))))
 
 (defun emit (code)
   (cond
@@ -22,12 +31,16 @@
     ((listp code)
      (case (car code)
        (entity (destructuring-bind (name &key ports) (cdr code)
-		 (c (f "entity ~a is~%" name)
-		    (f "  port(~%~{~a~^~%~});~%" ports)
-		    (f "end ~a;" name))))
+		 (c (fs "entity ~a is~%" name)
+		    (fs "  port(~%~{    ~a~^;~%~});~%" (loop for (name dir type) in ports collect
+						       (f "~a : ~a ~a" name dir (print-type type))))
+		    (fs "end ~a;" name))))
        (t (cond ((and (= 2 (length code)) 
 		      (member (car code) '(-))) ;; unary operators
 		 (destructuring-bind (op operand) code
 		   (f "(~a (~a))" op (emit operand))))))))))
 
-(emit `(entity ckt_e :ports ((ram-cs))))
+(emit `(entity ckt_e :ports ((ram_cs :in std_logic)
+			     (ram_we :in std_logic)
+			     (ram_we :in std_logic)
+			     (sel_op1 :in (std_logic_vector 3)))))
