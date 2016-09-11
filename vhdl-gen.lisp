@@ -44,46 +44,67 @@
 (defun emit (code)
   (cond
     ((null code) "")
+    ((atom code) (f "~a" code))
     ((listp code)
      (case (car code)
-       ;(architecture )
+       (block (c (ft "begin~%")
+		 (ft "~{  ~a;~}" (mapcar #'emit (cdr code)))
+		 (ft "end~%")))
+       (architecture (destructuring-bind (architecture-name entity-identifier &rest rest) (cdr code)
+		       (c (ft "architecture ~a of ~a is~%" architecture-name entity-identifier)
+			  (ft "~a" (emit `(block ,@rest))))))
        (entity (destructuring-bind (name &key ports) (cdr code)
 		 (c (ft "entity ~a is~%" name)
 		    (ft "  port(~%~{    ~a~^;~%~});~%"
 			(loop for (name dir type) in ports collect
 			     (f "~a : ~a ~a" name dir (print-type type))))
 		    (ft "end ~a;" name))))
+       
        (cond-assign (destructuring-bind (target &rest clauses) (cdr code)
 		      (c (ft "~a <= ~%" target)
 			 (loop for (condition expression) in clauses do
 			      (if (eql condition 't)
-				  (ft "  (~a);~%" expression condition)
-				  (ft "  (~a) when (~a) else~%" expression condition))))))
+				  (ft "  (~a)~%" (emit expression))
+				  (ft "  (~a) when (~a) else~%" (emit expression) (emit condition)))))))
        (t (cond ((and (= 2 (length code)) 
 		      (member (car code) '(-))) ;; unary operators
 		 (destructuring-bind (op operand) code
-		   (f "(~a (~a))" op (emit operand))))))))))
-#+nil
-(emit `(cond-assign target (cond1 exp1) (cond2 exp2) (t exp3)))
+		   (f "(~a (~a))" op (emit operand))))
+		((member (car code) '(or and))
+		 (destructuring-bind (op &rest args) code
+		   (c (ft "( ")
+		      (loop for e in (butlast args) do
+			   (ft "~a ~a " (emit e) op))
+		      (ft "~a )" (emit (car (last args)))))))))))))
+
+
+(defun test (a b)
+  (assert (string= (emit a) b)))
+
+
+(emit `(architecture f3_4 my_ckt_f3 (assign target (cond1 3) (t 2))))
+
+
+(emit `(cond-assign target ((or a (and c b)) exp1) (cond2 exp2) (t exp3)))
 
 ;; use slime-eval-print-last expression to get these outputs
-
-"target <= 
+(test
+ `(cond-assign target (cond1 exp1) (cond2 exp2) (t exp3))
+ "target <= 
   (exp1) when (cond1) else
   (exp2) when (cond2) else
-  (exp3);
-"
+  (exp3)
+")
 
-#+nil
-
-(emit `(entity ckt_e :ports ((ram_cs :in std_logic)
-			     (ram_we :in std_logic)
-			     (ram_we :in std_logic)
-			     (sel_op1 :in (std_logic_vector 3)))))
-"entity ckt_e is
+(test
+ `(entity ckt_e :ports ((ram_cs :in std_logic)
+			(ram_we :in std_logic)
+			(ram_we :in std_logic)
+			(sel_op1 :in (std_logic_vector 3))))
+ "entity ckt_e is
   port(
     ram_cs : in std_logic;
     ram_we : in std_logic;
     ram_we : in std_logic;
     sel_op1 : in std_logic_vector( 3 downto 0 ));
-end ckt_e;"
+end ckt_e;")
