@@ -58,8 +58,7 @@
 			 (loop for (condition expression) in clauses do
 			      (if (eql condition 't)
 				  (ft "  (~a);~%" expression condition)
-				  (ft "  (~a) when (~a) else~%" expression condition)))
-			 (ft ";~%"))))
+				  (ft "  (~a) when (~a) else~%" expression condition))))))
        (t (cond ((and (= 2 (length code)) 
 		      (member (car code) '(-))) ;; unary operators
 		 (destructuring-bind (op operand) code
@@ -67,8 +66,24 @@
 #+nil
 (emit `(cond-assign target (cond1 exp1) (cond2 exp2) (t exp3)))
 
+;; use slime-eval-print-last expression to get these outputs
+
+"target <= 
+  (exp1) when (cond1) else
+  (exp2) when (cond2) else
+  (exp3);
+"
+
 #+nil
+
 (emit `(entity ckt_e :ports ((ram_cs :in std_logic)
 			     (ram_we :in std_logic)
 			     (ram_we :in std_logic)
 			     (sel_op1 :in (std_logic_vector 3)))))
+"entity ckt_e is
+  port(
+    ram_cs : in std_logic;
+    ram_we : in std_logic;
+    ram_we : in std_logic;
+    sel_op1 : in std_logic_vector( 3 downto 0 ));
+end ckt_e;"
