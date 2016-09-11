@@ -37,6 +37,10 @@
 			 end)))
     (t (f "~a" type))))
 
+(format nil "~{~a=~a ~}" '((a 2) (3 a)))
+
+
+
 (defun emit (code)
   (cond
     ((null code) "")
@@ -49,11 +53,19 @@
 			(loop for (name dir type) in ports collect
 			     (f "~a : ~a ~a" name dir (print-type type))))
 		    (ft "end ~a;" name))))
-      ; (cond-assign (destruc))
+       (cond-assign (destructuring-bind (target &rest clauses) (cdr code)
+		      (c (ft "~a <= ~%" target)
+			 (loop for (condition expression) in clauses do
+			      (if (eql condition 't)
+				  (ft "  (~a);~%" expression condition)
+				  (ft "  (~a) when (~a) else~%" expression condition)))
+			 (ft ";~%"))))
        (t (cond ((and (= 2 (length code)) 
 		      (member (car code) '(-))) ;; unary operators
 		 (destructuring-bind (op operand) code
 		   (f "(~a (~a))" op (emit operand))))))))))
+#+nil
+(emit `(cond-assign target (cond1 exp1) (cond2 exp2) (t exp3)))
 
 #+nil
 (emit `(entity ckt_e :ports ((ram_cs :in std_logic)
