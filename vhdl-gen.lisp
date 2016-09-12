@@ -77,7 +77,7 @@
 			   (ft "~a ~a " (emit e) op))
 		      (ft "~a )" (emit (car (last args)))))))))))))
 
-(defun lev (a b)
+(defun lev-slow (a b)
   (declare (optimize (speed 0) (safety 3) (debug 3))
 	   (type simple-string a b)
 	   (values fixnum &optional))
@@ -85,15 +85,16 @@
 	     (declare (type fixnum i j)
 		      (type simple-string a b)
 		      (values fixnum &optional))
-	   (if (= 0 (min i j))
-	       (max i j)
+	     (if (= 0 i) (return-from frob j))
+	     (if (= 0 j) (return-from frob i))
+	     (let ((cost (if (eq (aref a (- i 1))
+				 (aref b (- j 1)))
+			     0
+			     1)))
 	       (min (+ 1 (frob a b (- i 1) j))
 		    (+ 1 (frob a b i (- j 1)))
 		    (+ (frob a b (- i 1) (- j 1))
-		       (if (eq (aref a (- i 1))
-			       (aref b (- j 1)))
-			   0
-			   1))))))
+		       cost)))))
     (frob a b (length a) (length b))))
 
 
@@ -107,13 +108,13 @@
 (emit `(cond-assign target ((or a (and c b)) exp1) (cond2 exp2) (t exp3)))
 
 ;; use slime-eval-print-last expression to get these outputs
-(test
- `(cond-assign target (cond1 exp1) (cond2 exp2) (t exp3))
- "target <= 
+(time (test
+  `(cond-assign target (cond1 exp1) (cond2 exp2) (t exp3))
+  "target <= 
   (exp1) when (cond1) else
   (exp2) when (cond2) else
   (exp3)
-")
+"))
 
 (test
  `(entity ckt_e
