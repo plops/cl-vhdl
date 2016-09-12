@@ -77,9 +77,28 @@
 			   (ft "~a ~a " (emit e) op))
 		      (ft "~a )" (emit (car (last args)))))))))))))
 
+(defun lev (a b)
+  (declare (optimize (speed 0) (safety 3) (debug 3))
+	   (type simple-string a b)
+	   (values fixnum &optional))
+  (labels ((frob (a b i j)
+	     (declare (type fixnum i j)
+		      (type simple-string a b)
+		      (values fixnum &optional))
+	   (if (= 0 (min i j))
+	       (max i j)
+	       (min (+ 1 (frob a b (- i 1) j))
+		    (+ 1 (frob a b i (- j 1)))
+		    (+ (frob a b (- i 1) (- j 1))
+		       (if (eq (aref a (- i 1))
+			       (aref b (- j 1)))
+			   0
+			   1))))))
+    (frob a b (length a) (length b))))
+
 
 (defun test (a b)
-  (assert (string= (emit a) b)))
+  (lev (emit a) b))
 
 
 (emit `(architecture f3_4 my_ckt_f3 (assign target (cond1 3) (t 2))))
@@ -97,7 +116,8 @@
 ")
 
 (test
- `(entity ckt_e :ports ((ram_cs :in std_logic)
+ `(entity ckt_e
+	  :ports ((ram_cs :in std_logic)
 			(ram_we :in std_logic)
 			(ram_we :in std_logic)
 			(sel_op1 :in (std_logic_vector 3))))
