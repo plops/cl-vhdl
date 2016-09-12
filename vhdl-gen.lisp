@@ -97,6 +97,45 @@
 		       cost)))))
     (frob a b (length a) (length b))))
 
+(defun lev (a b)
+  (declare (optimize (speed 0) (safety 3) (debug 3))
+	   (type simple-string a b)
+	   (values fixnum &optional))
+  (cond
+    ;; degenerate cases
+    ((string= a b) 0)
+    ((= 0 (length a)) (length b))
+    ((= 0 (length b)) (length a))
+    (t ;; create two work vectors with integer distance
+     (let ((v0 ;; previous row of distances, for an empty a. this
+	       ;; distance is the number of characters to delete from
+	       ;; b
+	    (make-array (+ 1 (length b)) :element-type 'fixnum))
+	   (v1 (make-array (+ 1 (length b)) :element-type 'fixnum)))
+       (declare (type (simple-array fixnum 1) v0 v1))
+       (dotimes (i (length v0))
+	 (setf (aref v0 i) i))
+       (dotimes (i (length a))
+	 ;; calculate current row distances v1
+	 ;; delete i+1 chars from a to match empty b
+	 (setf (aref v1 0) (+ i 1))
+	 (dotimes (j (length b)) ;; fill the rest of the row
+	   (setf (aref v1 (+ j 1)) (min (1+ (aref v1 j))
+					(1+ (aref v0 (+ j 1)))
+					(+ (aref v0 j)
+					   (if (eq (aref a i)
+						   (aref b j))
+					       0
+					       1)))))
+	 
+	 (dotimes (j (length v0))
+	   ;; copy current row (v1) to previous row for next iteration
+	   (setf (aref v0 j) (aref v1 j))))
+       (aref v1 (length b))))))
+
+#+nil
+(lev "GUMBO" "GAMBOL")
+
 
 (defun test (a b)
   (lev (emit a) b))
