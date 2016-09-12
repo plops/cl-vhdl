@@ -5,17 +5,16 @@
 
 (setf (readtable-case *readtable*) :invert)
 
+(defparameter *level* 0)
+
 (defmacro f (fmt &rest rest)
   "abbreviation for format nil"
-  `(format nil ,fmt ,@rest))
-
-(let ((fmt "~a ~a")
-      (rest '( 1 2 )))
- `(progn
-    (list 'format 3 'fmt 'rest)))
+  `(format nil ,(concatenate 'string "~{~a~}" fmt) (loop for i below *level* collect " ") ,@rest))
 
 (defmacro ft (fmd &rest rest)
-  `(format t ,fmd ,@rest))
+  `(progn
+     (format t "~{~a~}" (loop for i below *level* collect " "))
+     (format t ,fmd ,@rest)))
 
 (defmacro c (&body body)
   "combine multiple outputs into string, overload standard output so that you can use fs as a abbreviation to (format t ...)"
@@ -37,9 +36,13 @@
 			 end)))
     (t (f "~a" type))))
 
-(format nil "~{~a=~a ~}" '((a 2) (3 a)))
-
-
+(progn
+  (setf *level* 0)
+ (emit `(entity ckt_e
+		:ports ((ram_cs :in std_logic)
+			(ram_we :in std_logic)
+			(ram_we :in std_logic)
+			(sel_op1 :in (std_logic_vector 3))))))
 
 (defun emit (code)
   (cond
@@ -48,16 +51,23 @@
     ((listp code)
      (case (car code)
        (block (c (ft "begin~%")
+		 (incf *level* 4)
 		 (ft "~{  ~a;~}" (mapcar #'emit (cdr code)))
+		 (decf *level* 4)
 		 (ft "end~%")))
        (architecture (destructuring-bind (architecture-name entity-identifier &rest rest) (cdr code)
 		       (c (ft "architecture ~a of ~a is~%" architecture-name entity-identifier)
 			  (ft "~a" (emit `(block ,@rest))))))
        (entity (destructuring-bind (name &key ports) (cdr code)
 		 (c (ft "entity ~a is~%" name)
-		    (ft "  port(~%~{    ~a~^;~%~});~%"
-			(loop for (name dir type) in ports collect
-			     (f "~a : ~a ~a" name dir (print-type type))))
+		    (incf *level* 2)
+		    (ft "port(~%")
+		    (incf *level* 2)
+		    (loop for (name dir type) in ports do
+			 (ft "~a : ~a ~a;~%" name dir (print-type type)))
+		    (decf *level* 2)
+		    (ft ");~%")
+		    (decf *level* 2)
 		    (ft "end ~a;" name))))
        
        (cond-assign (destructuring-bind (target &rest clauses) (cdr code)
@@ -76,26 +86,6 @@
 		      (loop for e in (butlast args) do
 			   (ft "~a ~a " (emit e) op))
 		      (ft "~a )" (emit (car (last args)))))))))))))
-
-(defun lev-slow (a b)
-  (declare (optimize (speed 0) (safety 3) (debug 3))
-	   (type simple-string a b)
-	   (values fixnum &optional))
-  (labels ((frob (a b i j)
-	     (declare (type fixnum i j)
-		      (type simple-string a b)
-		      (values fixnum &optional))
-	     (if (= 0 i) (return-from frob j))
-	     (if (= 0 j) (return-from frob i))
-	     (let ((cost (if (eq (aref a (- i 1))
-				 (aref b (- j 1)))
-			     0
-			     1)))
-	       (min (+ 1 (frob a b (- i 1) j))
-		    (+ 1 (frob a b i (- j 1)))
-		    (+ (frob a b (- i 1) (- j 1))
-		       cost)))))
-    (frob a b (length a) (length b))))
 
 (defun lev (a b)
   (declare (optimize (speed 0) (safety 3) (debug 3))
@@ -147,13 +137,15 @@
 (emit `(cond-assign target ((or a (and c b)) exp1) (cond2 exp2) (t exp3)))
 
 ;; use slime-eval-print-last expression to get these outputs
-(time (test
-  `(cond-assign target (cond1 exp1) (cond2 exp2) (t exp3))
-  "target <= 
+(test
+ `(cond-assign target (cond1 exp1) (cond2 exp2) (t exp3))
+ "target <= 
   (exp1) when (cond1) else
   (exp2) when (cond2) else
   (exp3)
-"))
+")
+
+
 
 (test
  `(entity ckt_e
