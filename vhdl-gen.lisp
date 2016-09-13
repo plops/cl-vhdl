@@ -7,13 +7,19 @@
 
 (defparameter *level* 0)
 
+(defmacro with-indent (&body body)
+  `(progn
+     (incf *level*)
+     ,@body
+     (decf *level*)))
+
 (defmacro f (fmt &rest rest)
   "abbreviation for format nil"
-  `(format nil ,(concatenate 'string "~{~a~}" fmt) (loop for i below *level* collect " ") ,@rest))
+  `(format nil ,(concatenate 'string "~{~a~}" fmt) (loop for i below (* 4 *level*) collect " ") ,@rest))
 
 (defmacro ft (fmd &rest rest)
   `(progn
-     (format t "~{~a~}" (loop for i below *level* collect " "))
+     (format t "~{~a~}" (loop for i below (* 4 *level*) collect " "))
      (format t ,fmd ,@rest)))
 
 (defmacro c (&body body)
@@ -36,6 +42,7 @@
 			 end)))
     (t (f "~a" type))))
 
+#+nil
 (progn
   (setf *level* 0)
  (emit `(entity ckt_e
@@ -51,41 +58,48 @@
     ((listp code)
      (case (car code)
        (block (c (ft "begin~%")
-		 (incf *level* 4)
-		 (ft "~{  ~a;~}" (mapcar #'emit (cdr code)))
-		 (decf *level* 4)
+		 (with-indent
+		   (ft "~{  ~a;~}" (mapcar #'emit (cdr code))))
 		 (ft "end~%")))
        (architecture (destructuring-bind (architecture-name entity-identifier &rest rest) (cdr code)
 		       (c (ft "architecture ~a of ~a is~%" architecture-name entity-identifier)
 			  (ft "~a" (emit `(block ,@rest))))))
        (entity (destructuring-bind (name &key ports) (cdr code)
 		 (c (ft "entity ~a is~%" name)
-		    (incf *level* 2)
-		    (ft "port(~%")
-		    (incf *level* 2)
-		    (loop for (name dir type) in ports do
-			 (ft "~a : ~a ~a;~%" name dir (print-type type)))
-		    (decf *level* 2)
-		    (ft ");~%")
-		    (decf *level* 2)
+		    (with-indent 
+		      (ft "port(~%")
+		      (with-indent
+			(loop for (name dir type) in ports do
+			     (ft "~a : ~a ~a;~%" name dir (print-type type))))
+		      (ft ");~%"))
 		    (ft "end ~a;" name))))
        
        (cond-assign (destructuring-bind (target &rest clauses) (cdr code)
 		      (c (ft "~a <= ~%" target)
-			 (loop for (condition expression) in clauses do
-			      (if (eql condition 't)
-				  (ft "  (~a)~%" (emit expression))
-				  (ft "  (~a) when (~a) else~%" (emit expression) (emit condition)))))))
+			 (with-indent
+			  (loop for (condition expression) in clauses do
+			       (if (not (eql condition 't))
+				   (ft "(~a) when (~a) else~%" (emit expression) (emit condition))
+				   (ft "(~a)~%" (emit expression)) ;; else 
+				   ))))))
+
+       (select-assign (destructuring-bind (target &rest clauses) (cdr code)
+			(c (ft "~a <= ~%" target)
+			   (with-indent
+			    (loop for (condition expression) in clauses do
+				 (if (eql condition 't)
+				     (ft "(~a)~%" (emit expression))
+				     (ft "(~a) when (~a) else~%" (emit expression) (emit condition))))))))
        (t (cond ((and (= 2 (length code)) 
 		      (member (car code) '(-))) ;; unary operators
 		 (destructuring-bind (op operand) code
 		   (f "(~a (~a))" op (emit operand))))
-		((member (car code) '(or and))
+		((member (car code) '(or and)) ;; bindary operators
 		 (destructuring-bind (op &rest args) code
-		   (c (ft "( ")
+		   (c (ft "(")
 		      (loop for e in (butlast args) do
 			   (ft "~a ~a " (emit e) op))
-		      (ft "~a )" (emit (car (last args)))))))))))))
+		      (ft "~a)" (emit (car (last args)))))))))))))
 
 (defun lev (a b)
   (declare (optimize (speed 0) (safety 3) (debug 3))
