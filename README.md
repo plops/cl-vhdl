@@ -28,6 +28,10 @@ bottom of the file vhdl-gen.lisp. Eventually, this code will go into
 its own file and I will use SBCL's code coverage tool to verify that
 all the execution paths in vhdl:emit are tested.
 
+## References
+
+MIT 6.004 Lecture Spring 2016
+
 ## License
 
 This code is released under GPL.
