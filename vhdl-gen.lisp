@@ -85,6 +85,9 @@
 			     (ft "~a : ~a ~a;~%" name dir (print-type type))))
 		      (ft ");~%"))
 		    (ft "end ~a;" name))))
+
+       (assign (destructuring-bind (target expression) (cdr code)
+		      (f "~a <= ~a~%" target (emit expression))))
        
        (cond-assign (destructuring-bind (target &rest clauses) (cdr code)
 		      (c (ft "~a <= ~%" target)
@@ -108,7 +111,7 @@
 		      (member (car code) '(-))) ;; unary operators
 		 (destructuring-bind (op operand) code
 		   (fn "(~a (~a))" op (emit operand))))
-		((member (car code) '(or and eq)) ;; bindary operators
+		((member (car code) '(or and xor eq)) ;; bindary operators
 		 (destructuring-bind (op &rest args) code
 		   (c (ftn "(")
 		      (loop for e in (butlast args) do
